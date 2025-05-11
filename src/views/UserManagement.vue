@@ -46,13 +46,6 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="状态" width="120">
-            <template #default="{ row }">
-              <el-tag :type="row.is_active ? 'success' : 'info'">
-                {{ row.is_active ? '激活' : '禁用' }}
-              </el-tag>
-            </template>
-          </el-table-column>
           <el-table-column label="注册时间" width="180">
             <template #default="{ row }">
               {{ formatDate(row.date_joined) }}
@@ -62,22 +55,22 @@
             <template #default="{ row }">
               <div class="action-buttons">
                 <el-button-group class="action-group">
-                  <el-button 
-                    size="small" 
-                    type="primary"
-                    @click="editUser(row)"
-                  >
-                    编辑
-                  </el-button>
-                  <el-button 
-                    size="small" 
-                    type="danger"
-                    :disabled="row.id === currentUser.id"
-                    @click="deleteUser(row)"
-                  >
-                    删除
-                  </el-button>
-                </el-button-group>
+                <el-button 
+                  size="small" 
+                  type="primary"
+                  @click="editUser(row)"
+                >
+                  编辑
+                </el-button>
+                <el-button 
+                  size="small" 
+                  type="danger"
+                  :disabled="row.id === currentUser.id"
+                  @click="deleteUser(row)"
+                >
+                  删除
+                </el-button>
+              </el-button-group>
                 <el-button 
                   size="small" 
                   type="warning"
@@ -99,6 +92,7 @@
       :title="isEdit ? '编辑用户' : '新增用户'"
       width="30%"
       :close-on-click-modal="false"
+      @closed="resetForm"
     >
       <el-form 
         ref="userFormRef" 
@@ -158,7 +152,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '../store/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
-import { getUsers, createUser, updateUser, deleteUser as deleteUserApi, resetUserPassword } from '../api/user'
+import { getUsers, createUser, updateUser, deleteUser as deleteUserApi, resetUserPassword, changeUserRole } from '../api/user'
 
 const userStore = useUserStore()
 const currentUser = computed(() => userStore.user)
@@ -176,8 +170,7 @@ const userForm = ref({
   username: '',
   email: '',
   password: '',
-  role: 'user',
-  is_active: true
+  role: 'user'
 })
 
 const userFormRef = ref(null)
@@ -221,8 +214,7 @@ function showAddUserForm() {
     username: '',
     email: '',
     password: '',
-    role: 'user',
-    is_active: true
+    role: 'user'
   }
   dialogVisible.value = true
 }
@@ -234,8 +226,7 @@ function editUser(user) {
   userForm.value = {
     username: user.username,
     email: user.email,
-    role: user.profile.role,
-    is_active: user.is_active
+    role: user.profile.role
   }
   dialogVisible.value = true
 }
@@ -291,25 +282,47 @@ function saveUser() {
     try {
       const formData = { ...userForm.value }
       
-      // 处理角色字段
-      formData.profile = {
-        role: formData.role
-      }
-      delete formData.role
-      
       if (isEdit.value) {
         // 编辑时不传密码
         delete formData.password
         
+        // 存储当前角色，完全从formData中移除
+        const currentRole = formData.role
+        delete formData.role
+        delete formData.is_active // 确保不传递is_active字段
+        
+        // 先更新用户基本信息（用户名和邮箱）
         await updateUser(editingUserId.value, formData)
-        ElMessage.success('用户已更新')
+        
+        // 单独处理角色更新
+        const userInfo = users.value.find(u => u.id === editingUserId.value)
+        if (userInfo && userInfo.profile.role !== currentRole) {
+          try {
+            // 单独调用角色更新API
+            await changeUserRole(editingUserId.value, currentRole)
+            ElMessage.success(`用户 ${userInfo.username} 的角色已更新为 ${currentRole === 'admin' ? '管理员' : '普通用户'}`)
+          } catch (error) {
+            console.error('更新用户角色失败:', error)
+            ElMessage.error('更新用户角色失败')
+            // 如果角色更新失败，不影响基本信息的更新结果
+          }
+        } else {
+          ElMessage.success('用户信息已更新')
+        }
       } else {
+        // 处理新增用户时的角色字段
+        formData.profile = {
+          role: formData.role
+        }
+        delete formData.role
+        delete formData.is_active // 确保不传递is_active字段
+        
         await createUser(formData)
         ElMessage.success('用户已创建')
       }
       
       dialogVisible.value = false
-      fetchUsers()
+      fetchUsers() // 刷新用户列表
     } catch (error) {
       console.error('保存用户失败:', error)
       ElMessage.error('保存用户失败')
@@ -346,6 +359,19 @@ function filterUsers() {
     user.username.toLowerCase().includes(query) || 
     user.email.toLowerCase().includes(query)
   )
+}
+
+// 重置表单
+function resetForm() {
+  if (userFormRef.value) {
+    userFormRef.value.resetFields()
+  }
+  userForm.value = {
+    username: '',
+    email: '',
+    password: '',
+    role: 'user'
+  }
 }
 
 onMounted(() => {

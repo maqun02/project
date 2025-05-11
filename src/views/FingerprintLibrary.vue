@@ -36,7 +36,7 @@
           <el-form-item>
             <el-button 
               type="primary" 
-              @click="fetchFingerprints" 
+              @click="handleSearch" 
               :loading="loading"
               :disabled="loading"
             >
@@ -656,7 +656,22 @@ function saveBatchFingerprints() {
       
       // 发送批量提交请求
       const response = await submitBatchFingerprints(data)
-      ElMessage.success(`批量指纹已提交，成功添加${response.results?.successful || 0}条记录`)
+      
+      // 处理优化后的返回信息
+      if (response.success) {
+        let message = response.message || `批量指纹已提交，成功添加${response.results?.successful || 0}条记录`;
+        
+        // 如果有跳过的记录，添加到消息中
+        if (response.results?.skipped > 0) {
+          message = `批量指纹已提交，成功添加${response.results.successful}条记录，跳过${response.results.skipped}条已存在的指纹`;
+        }
+        
+        ElMessage.success(message);
+      } else {
+        // 处理失败情况
+        ElMessage.warning(response.message || '部分指纹数据添加失败');
+      }
+      
       batchDialogVisible.value = false
       fetchFingerprints()
     } catch (error) {
@@ -666,6 +681,14 @@ function saveBatchFingerprints() {
       batchSaveLoading.value = false
     }
   })
+}
+
+// 处理搜索按钮点击
+function handleSearch() {
+  // 搜索时重置页码为第一页
+  currentPage.value = 1
+  updateUrlParams()
+  fetchFingerprints()
 }
 
 onMounted(() => {

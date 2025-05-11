@@ -22,7 +22,7 @@ export function submitFingerprint(data) {
 
 // 批量提交指纹
 export function submitBatchFingerprints(data) {
-  return http.post('/fingerprints/batch-submit/', data)
+  return http.post('/fingerprints/batch_submit/', data)
 }
 
 // 获取已审核通过的指纹列表

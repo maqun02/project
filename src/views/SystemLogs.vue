@@ -53,7 +53,7 @@
           <el-form-item>
             <el-button 
               type="primary" 
-              @click="fetchLogs" 
+              @click="handleSearch" 
               :loading="loading" 
               :disabled="loading"
             >
@@ -246,17 +246,17 @@ function formatDate(dateString) {
   if (!dateString) return ''
   
   try {
-    const date = new Date(dateString)
+  const date = new Date(dateString)
     if (isNaN(date.getTime())) return dateString
     
-    return new Intl.DateTimeFormat('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    }).format(date)
+  return new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).format(date)
   } catch (error) {
     console.error('日期格式化失败:', error)
     return dateString
@@ -408,6 +408,14 @@ function buildQueryParams() {
   }
   
   return params
+}
+
+// 处理搜索按钮点击
+function handleSearch() {
+  // 搜索时重置页码为第一页
+  currentPage.value = 1
+  updateUrlParams()
+  fetchLogs()
 }
 
 onMounted(() => {

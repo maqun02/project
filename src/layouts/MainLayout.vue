@@ -2,55 +2,55 @@
   <div class="main-layout" :class="{ 'dark': isDarkMode }">
     <el-header class="main-header" v-if="!loading">
       <div class="header-content">
-        <div class="logo">FWF</div>
-        <el-menu 
-          :default-active="activeMenu" 
-          mode="horizontal" 
-          class="main-menu"
-          :ellipsis="false"
+      <div class="logo">FWF</div>
+      <el-menu 
+        :default-active="activeMenu" 
+        mode="horizontal" 
+        class="main-menu"
+        :ellipsis="false"
           @select="handleMenuSelect"
-        >
+      >
           <el-menu-item index="/dashboard/fingerprint-recognition">
-            <el-icon><el-icon-search /></el-icon>
-            <span>识别指纹</span>
-          </el-menu-item>
+          <el-icon><el-icon-search /></el-icon>
+          <span>识别指纹</span>
+        </el-menu-item>
           <el-menu-item index="/dashboard/fingerprint-library">
-            <el-icon><el-icon-files /></el-icon>
-            <span>指纹库</span>
-          </el-menu-item>
+          <el-icon><el-icon-files /></el-icon>
+          <span>指纹库</span>
+        </el-menu-item>
           <el-menu-item index="/dashboard/recognition-reports">
-            <el-icon><el-icon-document /></el-icon>
-            <span>识别报告</span>
-          </el-menu-item>
+          <el-icon><el-icon-document /></el-icon>
+          <span>识别报告</span>
+        </el-menu-item>
           <el-menu-item v-if="userStore.isAdmin" index="/dashboard/user-management">
-            <el-icon><el-icon-user /></el-icon>
-            <span>用户管理</span>
-          </el-menu-item>
+          <el-icon><el-icon-user /></el-icon>
+          <span>用户管理</span>
+        </el-menu-item>
           <el-menu-item v-if="userStore.isAdmin" index="/dashboard/system-logs">
-            <el-icon><el-icon-list /></el-icon>
-            <span>系统日志</span>
-          </el-menu-item>
-        </el-menu>
-        <div class="user-actions">
-          <el-switch
-            v-model="isDarkMode"
-            inline-prompt
-            :active-icon="Moon"
-            :inactive-icon="Sunny"
-            @change="toggleDarkMode"
+          <el-icon><el-icon-list /></el-icon>
+          <span>系统日志</span>
+        </el-menu-item>
+      </el-menu>
+      <div class="user-actions">
+        <el-switch
+          v-model="isDarkMode"
+          inline-prompt
+          :active-icon="Moon"
+          :inactive-icon="Sunny"
+          @change="toggleDarkMode"
             class="theme-switch"
-          />
+        />
           <el-dropdown @command="handleCommand" class="user-dropdown">
-            <span class="el-dropdown-link">
-              {{ userStore.username }}
-              <el-icon class="el-icon--right"><arrow-down /></el-icon>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          <span class="el-dropdown-link">
+            {{ userStore.username }}
+            <el-icon class="el-icon--right"><arrow-down /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         </div>
       </div>
     </el-header>

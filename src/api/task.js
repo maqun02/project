@@ -1,8 +1,8 @@
 import http from './http'
 
 // 获取任务列表
-export function getTasks() {
-  return http.get('/tasks/')
+export function getTasks(params = {}) {
+  return http.get('/tasks/', { params })
 }
 
 // 获取单个任务详情

@@ -9,41 +9,41 @@
       <div class="main-content">
         <div class="content-section">
           <el-card class="recognition-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
+      <template #header>
+        <div class="card-header">
                 <h2>
                   <el-icon class="header-icon"><Search /></el-icon>
                   开始识别
                 </h2>
-              </div>
-            </template>
-            
-            <el-form 
-              ref="searchForm" 
-              :model="form" 
-              :rules="rules" 
+        </div>
+      </template>
+      
+      <el-form 
+        ref="searchForm" 
+        :model="form" 
+        :rules="rules" 
               label-position="top"
-              class="search-form"
-            >
-              <el-form-item label="目标URL" prop="url">
-                <el-input 
-                  v-model="form.url" 
-                  placeholder="请输入网站URL，例如：https://example.com"
-                  clearable
+        class="search-form"
+      >
+        <el-form-item label="目标URL" prop="url">
+          <el-input 
+            v-model="form.url" 
+            placeholder="请输入网站URL，例如：https://example.com"
+            clearable
                   size="large"
                 >
                   <template #prefix>
                     <el-icon><Link /></el-icon>
                   </template>
                 </el-input>
-              </el-form-item>
-              
-              <el-form-item label="爬取模式" prop="mode">
+        </el-form-item>
+        
+        <el-form-item label="爬取模式" prop="mode">
                 <div class="mode-selection-wrapper">
                   <el-radio-group v-model="form.mode" size="large">
                     <el-radio-button label="simple">简单模式</el-radio-button>
                     <el-radio-button label="deep">深度模式</el-radio-button>
-                  </el-radio-group>
+          </el-radio-group>
                   <el-tooltip 
                     :content="form.mode === 'simple' ? '简单模式：仅分析主页，速度快' : '深度模式：分析多个页面，结果更全面'" 
                     placement="top"
@@ -51,9 +51,9 @@
                     <el-icon class="info-icon"><InfoFilled /></el-icon>
                   </el-tooltip>
                 </div>
-              </el-form-item>
-              
-              <el-form-item v-if="form.mode === 'deep'" label="爬取深度" prop="depth">
+        </el-form-item>
+        
+        <el-form-item v-if="form.mode === 'deep'" label="爬取深度" prop="depth">
                 <el-radio-group v-model="form.depth" size="large" class="depth-selector">
                   <el-radio-button :label="1">1</el-radio-button>
                   <el-radio-button :label="2">2</el-radio-button>
@@ -64,28 +64,28 @@
                   <span v-else-if="form.depth === 2">中度爬取</span>
                   <span v-else>深度爬取</span>
                 </div>
-              </el-form-item>
-              
-              <el-form-item>
-                <el-button 
-                  type="primary" 
-                  :loading="loading"
+        </el-form-item>
+        
+        <el-form-item>
+          <el-button 
+            type="primary" 
+            :loading="loading" 
                   size="large"
                   class="submit-btn"
-                  @click="submitTask"
+            @click="submitTask"
                   :disabled="loading"
-                >
+          >
                   <el-icon v-if="!loading"><Operation /></el-icon>
                   <span v-if="!loading">开始识别</span>
                   <span v-else>正在识别中...</span>
-                </el-button>
-              </el-form-item>
-            </el-form>
-          </el-card>
-
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+    
           <el-card v-if="!loading && (taskResults.length > 0 || loadingResults)" class="results-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
+      <template #header>
+        <div class="card-header">
                 <h2>
                   <el-icon class="header-icon"><DataAnalysis /></el-icon>
                   识别结果
@@ -105,38 +105,38 @@
                     </el-tag>
                   </div>
                 </template>
-              </div>
-            </template>
-            
-            <div v-if="loadingResults" class="loading-results">
+        </div>
+      </template>
+      
+      <div v-if="loadingResults" class="loading-results">
               <div class="loading-animation">
                 <el-icon class="loading-icon" :size="64"><Loading /></el-icon>
                 <p>正在加载结果，请稍候...</p>
               </div>
-            </div>
-            
-            <div v-else-if="taskResults.length === 0" class="no-results">
+      </div>
+      
+      <div v-else-if="taskResults.length === 0" class="no-results">
               <el-empty description="暂无识别结果，请等待识别完成。" />
-            </div>
-            
-            <div v-else class="results-container">
-              <template v-for="(result, index) in taskResults" :key="index">
-                <el-card class="result-item" shadow="hover">
-                  <template #header>
-                    <div class="result-header">
+      </div>
+      
+      <div v-else class="results-container">
+        <template v-for="(result, index) in taskResults" :key="index">
+          <el-card class="result-item" shadow="hover">
+            <template #header>
+              <div class="result-header">
                       <h3>
                         <el-icon><Link /></el-icon>
                         {{ result.url }}
                       </h3>
-                    </div>
-                  </template>
-                  
-                  <div v-if="result.components.length > 0" class="result-components">
+              </div>
+            </template>
+            
+            <div v-if="result.components.length > 0" class="result-components">
                     <h4>
                       <el-icon><Cpu /></el-icon>
                       检测到的组件：
                     </h4>
-                    <el-space wrap>
+              <el-space wrap>
                       <el-tag 
                         v-for="component in result.components" 
                         :key="component.id" 
@@ -144,64 +144,64 @@
                         effect="light"
                         round
                       >
-                        {{ component.component }}
-                      </el-tag>
-                    </el-space>
-                  </div>
-                  
-                  <div class="result-resources">
+                  {{ component.component }}
+                </el-tag>
+              </el-space>
+            </div>
+            
+            <div class="result-resources">
                     <h4>
                       <el-icon><Document /></el-icon>
                       检测到的资源：
                     </h4>
-                    <el-collapse>
-                      <el-collapse-item title="查看资源列表" name="1">
+              <el-collapse>
+                <el-collapse-item title="查看资源列表" name="1">
                         <el-table :data="getResourcesData(result.resources)" stripe style="width: 100%">
                           <el-table-column label="资源URL" prop="url" show-overflow-tooltip />
-                          <el-table-column label="资源类型" prop="type" width="120" />
-                        </el-table>
-                      </el-collapse-item>
-                    </el-collapse>
-                  </div>
-                  
-                  <div class="result-headers">
+                    <el-table-column label="资源类型" prop="type" width="120" />
+                  </el-table>
+                </el-collapse-item>
+              </el-collapse>
+            </div>
+            
+            <div class="result-headers">
                     <h4>
                       <el-icon><Connection /></el-icon>
                       HTTP 头信息：
                     </h4>
-                    <el-collapse>
-                      <el-collapse-item title="查看头信息" name="1">
-                        <el-descriptions :column="1" border>
-                          <el-descriptions-item 
-                            v-for="(value, key) in result.headers" 
-                            :key="key" 
-                            :label="key"
-                          >{{ value }}</el-descriptions-item>
-                        </el-descriptions>
-                      </el-collapse-item>
-                    </el-collapse>
-                  </div>
-                </el-card>
-              </template>
-              
-              <div class="view-report">
-                <el-button 
-                  type="primary" 
-                  @click="viewDetailedReport"
-                  :disabled="!currentTask || currentTask.status !== 'completed'"
-                  size="large"
-                  round
-                >
-                  <el-icon><DocumentCopy /></el-icon>
-                  查看详细报告
-                </el-button>
-              </div>
+              <el-collapse>
+                <el-collapse-item title="查看头信息" name="1">
+                  <el-descriptions :column="1" border>
+                    <el-descriptions-item 
+                      v-for="(value, key) in result.headers" 
+                      :key="key" 
+                      :label="key"
+                    >{{ value }}</el-descriptions-item>
+                  </el-descriptions>
+                </el-collapse-item>
+              </el-collapse>
             </div>
           </el-card>
-
+        </template>
+        
+        <div class="view-report">
+          <el-button 
+            type="primary" 
+            @click="viewDetailedReport"
+            :disabled="!currentTask || currentTask.status !== 'completed'"
+                  size="large"
+                  round
+          >
+                  <el-icon><DocumentCopy /></el-icon>
+            查看详细报告
+          </el-button>
+        </div>
+      </div>
+    </el-card>
+    
           <el-card class="recent-tasks-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
+      <template #header>
+        <div class="card-header">
                 <h2>
                   <el-icon class="header-icon"><Calendar /></el-icon>
                   近期任务
@@ -209,9 +209,9 @@
                 <el-button @click="fetchRecentTasks" :loading="taskListLoading" type="primary" text>
                   <el-icon><Refresh /></el-icon>
                 </el-button>
-              </div>
-            </template>
-            
+        </div>
+      </template>
+      
             <div v-if="taskListLoading && recentTasks.length === 0" class="loading-tasks">
               <el-skeleton :rows="3" animated />
             </div>
@@ -234,7 +234,7 @@
               >
                 <el-table-column label="URL" prop="url" show-overflow-tooltip min-width="160" />
                 <el-table-column label="状态" width="80">
-                  <template #default="{ row }">
+          <template #default="{ row }">
                     <el-tooltip 
                       :content="row.status === 'completed' ? '识别完成' : 
                                row.status === 'running' ? '识别中' : 
@@ -250,10 +250,10 @@
                         {{ row.status_display }}
                       </el-tag>
                     </el-tooltip>
-                  </template>
-                </el-table-column>
+          </template>
+        </el-table-column>
                 <el-table-column label="操作" width="60">
-                  <template #default="{ row }">
+          <template #default="{ row }">
                     <el-popconfirm
                       title="确定要删除该任务吗？此操作将同时删除相关的结果和报告。"
                       confirm-button-text="确定"
@@ -263,12 +263,12 @@
                       <template #reference>
                         <el-button type="danger" size="small" circle @click.stop>
                           <el-icon><Delete /></el-icon>
-                        </el-button>
+              </el-button>
                       </template>
                     </el-popconfirm>
-                  </template>
-                </el-table-column>
-              </el-table>
+          </template>
+        </el-table-column>
+      </el-table>
               
               <div class="tasks-footer" v-if="recentTasks.length > 3">
                 <p class="tasks-tip">
@@ -278,7 +278,7 @@
                 <el-link type="primary" @click="viewAllTasks" class="view-all-link">查看全部任务</el-link>
               </div>
             </div>
-          </el-card>
+    </el-card>
         </div>
       </div>
     </div>

@@ -38,9 +38,17 @@ export function updateUser(id, data) {
 // 管理员删除用户
 export function deleteUser(id) {
   return http.delete(`/users/${id}/`)
-}
+} 
 
 // 管理员重置用户密码
 export function resetUserPassword(targetId) {
   return http.post('/users/reset_password/', { target_id: targetId })
+} 
+
+// 管理员更改用户角色
+export function changeUserRole(userId, role) {
+  return http.post('/users/update_role/', {
+    user_id: userId,
+    role: role
+  })
 } 
