@@ -10,7 +10,7 @@ export function getTaskDetail(id) {
   return http.get(`/tasks/${id}/`)
 }
 
-// 创建指纹识别任务
+// 创建任务
 export function createTask(data) {
   return http.post('/tasks/', data)
 }
@@ -32,10 +32,10 @@ export function deleteTask(id) {
 
 // 获取任务结果
 export function getTaskResults(taskId) {
-  return http.get(`/results/by_task/?task_id=${taskId}`)
+  return http.get(`/results/?task_id=${taskId}`)
 }
 
 // 获取任务分析报告
 export function getTaskReport(taskId) {
-  return http.get(`/results/report/?task_id=${taskId}`)
+  return http.get(`/results/api_response/?task_id=${taskId}`)
 } 

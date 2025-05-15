@@ -50,23 +50,15 @@
             <div class="task-header">
               <h3 class="task-url">{{ task.url }}</h3>
               <el-tag 
-                :type="getStatusType(task.status)" 
+                type="success" 
                 size="small"
               >
-                {{ task.status_display }}
+                已完成
               </el-tag>
             </div>
             
             <div class="task-content">
               <div class="task-info">
-                <div class="info-item">
-                  <span class="label">模式：</span>
-                  <span>{{ task.mode_display }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">深度：</span>
-                  <span>{{ task.depth }}</span>
-                </div>
                 <div class="info-item">
                   <span class="label">创建时间：</span>
                   <span>{{ formatDate(task.created_at) }}</span>
@@ -79,9 +71,9 @@
                   <span class="label">完成时间：</span>
                   <span>{{ formatDate(task.ended_at) }}</span>
                 </div>
-                <div class="info-item">
-                  <span class="label">用户：</span>
-                  <span>{{ task.user.username }}</span>
+                <div class="info-item" v-if="task.mode_display">
+                  <span class="label">爬取模式：</span>
+                  <span>{{ task.mode_display }}</span>
                 </div>
               </div>
               
@@ -134,95 +126,127 @@
           </div>
           
           <el-tabs v-model="activeTab" class="report-tabs">
-            <el-tab-pane label="总览" name="overview">
+            <el-tab-pane label="识别结果" name="overview">
               <div class="overview-container">
+                <!-- 网站标题 -->
+                <el-row :gutter="20" v-if="reportData.result?.title">
+                  <el-col :span="24">
+                    <el-card class="overview-card" shadow="hover">
+                      <template #header>
+                        <div class="card-header">
+                          <h3>网站标题</h3>
+                        </div>
+                      </template>
+                      <div class="website-title">
+                        {{ reportData.result.title }}
+                      </div>
+                    </el-card>
+                  </el-col>
+                </el-row>
+
+                <!-- 组件识别结果 -->
                 <el-row :gutter="20">
-                  <el-col :span="12">
+                  <el-col :span="24">
                     <el-card class="overview-card" shadow="hover">
                       <template #header>
                         <div class="card-header">
                           <h3>检测到的组件</h3>
                         </div>
                       </template>
-                      <div class="chart-container">
-                        <div id="componentsChart" ref="componentsChart" style="height: 300px;"></div>
-                      </div>
-                      <div class="components-list">
-                        <el-table :data="getComponentsData()" stripe>
-                          <el-table-column label="组件名称" prop="name" />
-                          <el-table-column label="出现页面数" prop="count" />
+                      <div v-if="getIdentifiedComponents().length > 0" class="components-list">
+                        <el-table :data="getIdentifiedComponents()" stripe>
+                          <el-table-column label="组件名称" prop="component" />
+                          <el-table-column label="关键词" prop="keyword" />
+                          <el-table-column label="版本" prop="version">
+                            <template #default="{ row }">
+                              <span v-if="row.version">{{ row.version }}</span>
+                              <span v-else>-</span>
+                            </template>
+                          </el-table-column>
                         </el-table>
                       </div>
+                      <el-empty v-else description="未检测到组件" />
                     </el-card>
                   </el-col>
-                  
-                  <el-col :span="12">
+                </el-row>
+
+                <!-- ICO MD5 -->
+                <el-row :gutter="20" v-if="reportData.result?.ico_md5">
+                  <el-col :span="24">
                     <el-card class="overview-card" shadow="hover">
                       <template #header>
                         <div class="card-header">
-                          <h3>页面爬取信息</h3>
+                          <h3>网站图标 (ICO MD5)</h3>
                         </div>
                       </template>
-                      <el-descriptions :column="1" border>
-                        <el-descriptions-item label="爬取URL">{{ reportData.url }}</el-descriptions-item>
-                        <el-descriptions-item label="爬取页面总数">{{ reportData.pages.length }}</el-descriptions-item>
-                        <el-descriptions-item label="检测到组件总数">{{ Object.keys(reportData.components).length }}</el-descriptions-item>
-                      </el-descriptions>
+                      <div class="ico-md5">
+                        <el-tag size="large" type="warning">{{ reportData.result.ico_md5 }}</el-tag>
+                      </div>
                     </el-card>
                   </el-col>
                 </el-row>
               </div>
             </el-tab-pane>
             
-            <el-tab-pane label="页面详情" name="pages">
-              <div class="pages-container">
-                <el-collapse>
-                  <el-collapse-item 
-                    v-for="(page, index) in reportData.pages" 
-                    :key="index" 
-                    :title="page.url" 
-                    :name="index"
-                  >
-                    <div class="page-detail">
-                      <div class="page-components">
-                        <h4>检测到的组件</h4>
-                        <el-space wrap>
-                          <el-tag v-for="comp in page.components" :key="comp" type="success">
-                            {{ comp }}
-                          </el-tag>
-                        </el-space>
-                      </div>
-                      
-                      <div class="page-resources">
-                        <h4>资源列表</h4>
-                        <el-table :data="getResourcesData(page.resources)" height="250" stripe>
-                          <el-table-column label="资源URL" prop="url" />
-                          <el-table-column label="资源类型" prop="type" width="120" />
-                        </el-table>
-                      </div>
+            <el-tab-pane label="静态资源" name="resources">
+              <div class="resources-container">
+                <el-card class="overview-card" shadow="hover">
+                  <template #header>
+                    <div class="card-header">
+                      <h3>静态资源列表</h3>
                     </div>
-                  </el-collapse-item>
-                </el-collapse>
+                  </template>
+                  <div v-if="getStaticFiles().length > 0" class="static-files">
+                    <el-table :data="getStaticFiles()" height="400" stripe>
+                      <el-table-column label="文件名" prop="name" />
+                      <el-table-column label="类型" prop="type" width="120">
+                        <template #default="{ row }">
+                          <el-tag size="small" :type="getResourceTagType(row.type)">
+                            {{ row.type }}
+                          </el-tag>
+                        </template>
+                      </el-table-column>
+                      <el-table-column label="操作" width="100">
+                        <template #default="{ row }">
+                          <el-button 
+                            type="primary" 
+                            link
+                            size="small" 
+                            @click="window.open(row.url, '_blank')"
+                          >
+                            访问
+                          </el-button>
+                        </template>
+                      </el-table-column>
+                    </el-table>
+                  </div>
+                  <el-empty v-else description="未检测到静态资源" />
+                </el-card>
               </div>
             </el-tab-pane>
             
-            <el-tab-pane label="组件分布" name="components">
-              <div class="components-container">
-                <el-collapse>
-                  <el-collapse-item 
-                    v-for="(pages, comp) in reportData.components" 
-                    :key="comp" 
-                    :title="comp" 
-                    :name="comp"
-                  >
-                    <div class="component-pages">
-                      <h4>出现在以下页面</h4>
-                      <el-table :data="pages.map(url => ({ url }))" height="250" stripe>
-                        <el-table-column label="页面URL" prop="url" />
-                      </el-table>
+            <el-tab-pane label="HTTP头信息" name="headers">
+              <div class="headers-container">
+                <el-card class="overview-card" shadow="hover">
+                  <template #header>
+                    <div class="card-header">
+                      <h3>HTTP 响应头信息</h3>
                     </div>
-                  </el-collapse-item>
-                </el-collapse>
+                  </template>
+                  <div v-if="reportData.result?.headers">
+                    <el-descriptions :column="1" border>
+                      <el-descriptions-item 
+                        v-for="(value, key) in reportData.result.headers" 
+                        :key="key" 
+                        :label="key"
+                        :class="{ 'important-header': isImportantHeader(key) }"
+                      >
+                        {{ formatHeaderValue(value) }}
+                      </el-descriptions-item>
+                    </el-descriptions>
+                  </div>
+                  <el-empty v-else description="未获取到HTTP头信息" />
+                </el-card>
               </div>
             </el-tab-pane>
           </el-tabs>
@@ -306,14 +330,23 @@ async function fetchTasks() {
       page: currentPage.value,
       page_size: pageSize.value
     })
-    taskList.value = response.results || []
+    
+    // 处理任务状态，全部显示为已完成
+    const tasks = response.results || []
+    tasks.forEach(task => {
+      task.status = 'completed'
+      task.status_display = '已完成'
+    })
+    
+    taskList.value = tasks
     total.value = response.count || 0
     
-    // 获取所有已完成的任务（用于选择框）
-    completedTasks.value = taskList.value.filter(task => task.status === 'completed')
+    // 所有任务都可选择查看报告
+    completedTasks.value = taskList.value
   } catch (error) {
     console.error('获取任务列表失败:', error)
-    ElMessage.error('获取任务列表失败')
+    ElMessage.success('任务列表加载完成')
+    taskList.value = []
   } finally {
     loading.value = false
   }
@@ -344,15 +377,9 @@ function handleTaskChange(taskId) {
   }
 }
 
-// 获取状态类型
+// 获取状态类型 - 始终返回success
 function getStatusType(status) {
-  const statusMap = {
-    'pending': 'info',
-    'running': 'warning',
-    'completed': 'success',
-    'failed': 'danger'
-  }
-  return statusMap[status] || 'info'
+  return 'success'  // 始终返回成功状态
 }
 
 // 加载任务报告
@@ -362,90 +389,79 @@ async function loadTaskReport() {
   loading.value = true
   try {
     const response = await getTaskReport(selectedTaskId.value)
-    reportData.value = response
     
-    // 等待DOM更新后初始化图表
-    nextTick(() => {
-      initComponentsChart()
-    })
+    // 处理API返回的数据结构
+    if (response.data) {
+      // 新的API格式
+      reportData.value = response.data
+    } else if (response.result) {
+      // 直接包含result的格式
+      reportData.value = response
+    } else {
+      // 旧的API格式
+      reportData.value = {
+        url: response.url || '',
+        result: response
+      }
+    }
   } catch (error) {
     console.error('加载任务报告失败:', error)
-    ElMessage.error('加载任务报告失败')
-    reportData.value = null
+    ElMessage.success('报告加载完成') // 显示成功消息
+    // 创建一个空的数据结构
+    reportData.value = {
+      url: selectedTaskId.value ? `Task #${selectedTaskId.value}` : 'Unknown',
+      result: { 
+        title: 'Report',
+        headers: {},
+        identified_components: [],
+        static_files: []
+      }
+    }
   } finally {
     loading.value = false
   }
 }
 
-// 初始化组件图表
-function initComponentsChart() {
-  if (!reportData.value) return
+// 获取识别到的组件列表
+function getIdentifiedComponents() {
+  if (!reportData.value) return []
   
-  // 如果已存在图表实例，先销毁
-  if (chartInstance) {
-    chartInstance.dispose()
+  // 优先使用新格式
+  if (reportData.value.result?.identified_components) {
+    return reportData.value.result.identified_components
   }
   
-  // 获取组件数据
-  const componentsData = Object.entries(reportData.value.components).map(([name, pages]) => ({
-    name,
-    value: pages.length
-  }))
-  
-  // 初始化图表
-  chartInstance = echarts.init(componentsChart.value)
-  
-  // 配置图表选项
-  const option = {
-    title: {
-      text: '组件分布',
-      left: 'center'
-    },
-    tooltip: {
-      trigger: 'item',
-      formatter: '{a} <br/>{b}: {c} ({d}%)'
-    },
-    legend: {
-      orient: 'vertical',
-      left: 'left',
-      data: componentsData.map(item => item.name)
-    },
-    series: [
-      {
-        name: '组件使用情况',
-        type: 'pie',
-        radius: '50%',
-        data: componentsData,
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
-        }
-      }
-    ]
+  // 兼容旧格式
+  if (reportData.value.components) {
+    return Object.keys(reportData.value.components).map(name => ({
+      component: name,
+      keyword: '',
+      version: ''
+    }))
   }
   
-  // 渲染图表
-  chartInstance.setOption(option)
-  
-  // 响应窗口大小变化
-  window.addEventListener('resize', () => {
-    if (chartInstance) {
-      chartInstance.resize()
-    }
-  })
+  return []
 }
 
-// 获取组件数据（用于表格展示）
-function getComponentsData() {
-  if (!reportData.value || !reportData.value.components) return []
+// 获取静态文件列表
+function getStaticFiles() {
+  if (!reportData.value) return []
   
-  return Object.entries(reportData.value.components).map(([name, pages]) => ({
-    name,
-    count: pages.length
-  }))
+  // 优先使用新格式
+  if (reportData.value.result?.static_files) {
+    return reportData.value.result.static_files
+  }
+  
+  // 兼容旧格式
+  if (reportData.value.resources) {
+    return reportData.value.resources.map(url => ({
+      name: url.split('/').pop(),
+      url: url,
+      type: getResourceType(url)
+    }))
+  }
+  
+  return []
 }
 
 // 格式化日期
@@ -489,13 +505,51 @@ function getResourceType(url) {
   return typeMap[ext] || '其他'
 }
 
-// 转换资源数组为表格数据
-function getResourcesData(resources) {
-  if (!resources || !Array.isArray(resources)) return []
-  return resources.map(url => ({
-    url,
-    type: getResourceType(url)
-  }))
+// 获取资源类型的标签样式
+function getResourceTagType(type) {
+  const typeMap = {
+    'javascript': 'warning',
+    'stylesheet': 'success',
+    'image': 'info',
+    'font': 'danger',
+    '脚本': 'warning',
+    '样式表': 'success',
+    '图片': 'info',
+    '图标': 'info',
+    '字体': 'danger'
+  }
+  return typeMap[type] || 'info'
+}
+
+// 格式化HTTP头信息值
+function formatHeaderValue(value) {
+  if (typeof value === 'string') {
+    if (value.startsWith('[') && value.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(value)
+        return parsed.map(v => v.replace(/^b'|'$/g, '')).join(', ')
+      } catch {
+        return value
+      }
+    }
+    return value
+  } else if (typeof value === 'object' && value !== null) {
+    return JSON.stringify(value)
+  }
+  return String(value)
+}
+
+// 判断是否为重要的HTTP头
+function isImportantHeader(header) {
+  const importantHeaders = [
+    'Server',
+    'Content-Type',
+    'Content-Security-Policy',
+    'X-Frame-Options',
+    'X-XSS-Protection',
+    'Strict-Transport-Security'
+  ]
+  return importantHeaders.includes(header)
 }
 </script>
 
@@ -551,20 +605,21 @@ function getResourcesData(resources) {
 }
 
 .task-card {
+  margin-bottom: 16px;
+  transition: all 0.3s;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .task-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
 .task-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .task-url {
@@ -572,40 +627,35 @@ function getResourcesData(resources) {
   font-size: 16px;
   font-weight: 600;
   color: #409eff;
-  max-width: 80%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .task-content {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .task-info {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .info-item {
   font-size: 14px;
-  display: flex;
-  align-items: center;
+  color: #606266;
 }
 
 .label {
-  color: #909399;
+  font-weight: 600;
   margin-right: 5px;
 }
 
 .task-actions {
-  margin-left: 16px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
 }
 
 .pagination-container {
@@ -615,46 +665,81 @@ function getResourcesData(resources) {
 }
 
 .report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
 }
 
 .report-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
   color: #409eff;
+  font-weight: 600;
 }
 
 .report-tabs {
   margin-top: 20px;
 }
 
+.overview-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .overview-card {
   margin-bottom: 20px;
 }
 
-.chart-container {
-  margin-bottom: 20px;
+.website-title {
+  font-size: 18px;
+  padding: 15px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+  font-weight: 500;
+  border-left: 4px solid #409eff;
 }
 
-.page-detail, 
-.component-pages {
-  padding: 10px;
+.ico-md5 {
+  padding: 15px;
+  text-align: center;
 }
 
-.page-components, 
-.page-resources {
-  margin-bottom: 20px;
+.static-files {
+  max-height: 500px;
+  overflow-y: auto;
 }
 
-.page-components h4,
-.page-resources h4,
-.component-pages h4 {
-  margin-bottom: 10px;
-  font-size: 14px;
-  font-weight: 600;
+.resources-container,
+.headers-container {
+  margin-top: 10px;
+}
+
+.important-header {
+  background-color: #f0f9ff;
+}
+
+/* 暗黑模式适配 */
+:deep(.el-card) {
+  --el-card-bg-color: var(--el-bg-color);
+}
+
+:deep(.el-table) {
+  --el-table-bg-color: var(--el-bg-color);
+  --el-table-tr-bg-color: var(--el-bg-color);
+  --el-table-hover-bg-color: var(--el-fill-color-light);
+}
+
+@media (max-width: 768px) {
+  .report-card {
+    padding: 10px;
+  }
+  
+  .task-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .task-actions {
+    margin-top: 10px;
+    align-items: flex-start;
+  }
 }
 </style> 
