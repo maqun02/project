@@ -38,4 +38,14 @@ export function getTaskResults(taskId) {
 // 获取任务分析报告
 export function getTaskReport(taskId) {
   return http.get(`/results/api_response/?task_id=${taskId}`)
+}
+
+// 创建IP扫描任务
+export function createIpScan(data) {
+  return http.post('/ipscans/', data)
+}
+
+// 获取IP扫描结果
+export function getIpScanResults(taskId) {
+  return http.get(`/ipscans/${taskId}/results/`)
 } 
