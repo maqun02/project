@@ -5,25 +5,6 @@
         <div class="card-header">
           <h2>识别报告</h2>
           <div class="header-actions">
-            <el-select 
-              v-if="selectedTaskId"
-              v-model="selectedTaskId" 
-              placeholder="选择任务查看报告" 
-              clearable 
-              filterable
-              @change="handleTaskChange"
-              style="width: 250px;"
-            >
-              <el-option 
-                v-for="task in completedTasks" 
-                :key="task.id" 
-                :label="task.url" 
-                :value="task.id" 
-              />
-            </el-select>
-            <el-button v-if="selectedTaskId" size="small" @click="backToList">
-              返回列表
-            </el-button>
           </div>
         </div>
       </template>
@@ -116,7 +97,6 @@
           <el-empty description="报告数据加载失败" />
           <div class="empty-actions">
             <el-button type="primary" @click="loadTaskReport">重试</el-button>
-            <el-button @click="backToList">返回列表</el-button>
           </div>
         </div>
         
@@ -204,18 +184,6 @@
                           <el-tag size="small" :type="getResourceTagType(row.type)">
                             {{ row.type }}
                           </el-tag>
-                        </template>
-                      </el-table-column>
-                      <el-table-column label="操作" width="100">
-                        <template #default="{ row }">
-                          <el-button 
-                            type="primary" 
-                            link
-                            size="small" 
-                            @click="window.open(row.url, '_blank')"
-                          >
-                            访问
-                          </el-button>
                         </template>
                       </el-table-column>
                     </el-table>

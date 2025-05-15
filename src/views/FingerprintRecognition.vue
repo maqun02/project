@@ -68,8 +68,8 @@
                       :width="36"
                       :stroke-width="6"
                     />
-                    <el-tag v-else :type="getTaskStatusType(currentTask.status)" effect="dark" round>
-                      {{ currentTask.status_display }}
+                    <el-tag type="success" effect="dark" round>
+                      已完成
                     </el-tag>
                   </div>
                 </template>
@@ -165,18 +165,6 @@
                         </el-tag>
                       </template>
                     </el-table-column>
-                    <el-table-column label="操作" width="80">
-                      <template #default="{ row }">
-                        <el-button 
-                          type="primary" 
-                          link
-                          size="small" 
-                          @click="window.open(row.url, '_blank')"
-                        >
-                          访问
-                        </el-button>
-                      </template>
-                    </el-table-column>
                   </el-table>
                 </el-collapse-item>
               </el-collapse>
@@ -191,18 +179,6 @@
                 <el-collapse-item title="查看资源列表" name="1">
                   <el-table :data="result.resources" stripe style="width: 100%">
                     <el-table-column label="资源URL" prop="url" show-overflow-tooltip />
-                    <el-table-column label="操作" width="80">
-                      <template #default="{ row }">
-                        <el-button 
-                          type="primary" 
-                          link
-                          size="small" 
-                          @click="window.open(row, '_blank')"
-                        >
-                          访问
-                        </el-button>
-                      </template>
-                    </el-table-column>
                   </el-table>
                 </el-collapse-item>
               </el-collapse>
