@@ -103,6 +103,10 @@
         <div v-else class="report-content">
           <div class="report-header">
             <h3>{{ reportData.url }}</h3>
+            <el-button type="primary" size="small" @click="backToList">
+              <el-icon><Back /></el-icon>
+              返回列表
+            </el-button>
           </div>
           
           <el-tabs v-model="activeTab" class="report-tabs">
@@ -233,6 +237,7 @@ import * as echarts from 'echarts/core'
 import { PieChart } from 'echarts/charts'
 import { TooltipComponent, LegendComponent, TitleComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
+import { Back } from '@element-plus/icons-vue'
 
 // 注册必须的组件
 echarts.use([PieChart, TooltipComponent, LegendComponent, TitleComponent, CanvasRenderer])
@@ -634,12 +639,16 @@ function isImportantHeader(header) {
 
 .report-header {
   margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .report-header h3 {
   font-size: 20px;
   color: #409eff;
   font-weight: 600;
+  margin: 0;
 }
 
 .report-tabs {
